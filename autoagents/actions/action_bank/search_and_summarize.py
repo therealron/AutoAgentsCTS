@@ -13,6 +13,9 @@ from autoagents.system.logs import logger
 from autoagents.system.schema import Message
 from autoagents.system.tools.search_engine import SearchEngine
 
+from langchain.chains.openai_functions.openapi import get_openapi_chain
+
+
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
 - The context is for reference only. If it is irrelevant to the user's search request history, please reduce its reference and usage.
@@ -125,6 +128,64 @@ class SearchAndSummarize(Action):
         while True:
             try:
                 rsp = await self.search_engine.run(query)
+                break
+            except ValueError as e:
+                try_count += 1
+                if try_count >= 3:
+                    # Retry 3 times to fail
+                    raise e
+                time.sleep(1)
+
+        self.result = rsp
+        if not rsp:
+            logger.error('empty rsp...')
+            return ""
+        # logger.info(rsp)
+
+        system_prompt = [system_text]
+
+        prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
+            # PREFIX = self.prefix,
+            ROLE=self.profile,
+            CONTEXT=rsp,
+            QUERY_HISTORY='\n'.join([str(i) for i in context[:-1]]),
+            QUERY=str(context[-1])
+        )
+        result = await self._aask(prompt, system_prompt)
+        logger.debug(prompt)
+        logger.debug(result)
+        print("DEBUG: result = ",result)
+        return result
+
+
+class SearchProductsFromKlarna(Action):
+    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None, serpapi_api_key=None):
+        self.config = Config()
+        self.serpapi_api_key = serpapi_api_key
+        self.engine = engine or self.config.search_engine
+        self.search_engine = SearchEngine(self.engine, run_func=search_func, serpapi_api_key=serpapi_api_key)
+        self.result = ""
+        self.klarna_chain = get_openapi_chain("https://www.klarna.com/us/shopping/public/openai/v0/api-docs/")
+
+        super().__init__(name, context, llm, serpapi_api_key)
+
+    async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
+        no_serpapi = not self.config.serpapi_api_key or 'YOUR_API_KEY' == self.config.serpapi_api_key
+        no_serper = not self.config.serper_api_key or 'YOUR_API_KEY' == self.config.serper_api_key
+        no_google = not self.config.google_api_key or 'YOUR_API_KEY' == self.config.google_api_key
+        no_self_serpapi = self.serpapi_api_key is None
+
+        if no_serpapi and no_google and no_serper and no_self_serpapi:
+            logger.warning('Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature')
+            return ""
+        
+        query = context[-1].content
+        # logger.debug(query)
+        try_count = 0
+        while True:
+            try:
+                # rsp = await self.search_engine.run(query)
+                rsp = await self.klarna_chain(query)
                 break
             except ValueError as e:
                 try_count += 1
