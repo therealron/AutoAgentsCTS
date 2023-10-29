@@ -144,6 +144,7 @@ class CustomAction(Action):
             self._save(filename, content)
             response = f"\n{rsp.instruct_content.ActionInput}\n"
         elif rsp.instruct_content.Action in self.tool:
+            print("Debug: rsp.instruct_content.Action = ",rsp.instruct_content.Action," and self.tool = ",self.tool)
             sas = SearchAndSummarize(serpapi_api_key=self.serpapi_api_key, llm=self.llm)
             sas_rsp = await sas.run(context=[Message(rsp.instruct_content.ActionInput)], system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
             # response = f"\n{sas_rsp}\n"
