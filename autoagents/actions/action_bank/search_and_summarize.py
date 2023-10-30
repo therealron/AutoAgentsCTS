@@ -233,7 +233,7 @@ class SearchProductsFromKlarna(Action):
 
         system_prompt = [system_text]
 
-        prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
+        prompt = SEARCH_AND_SUMMARIZE_PRODUCTS_SYSTEM.format(
             # PREFIX = self.prefix,
             ROLE=self.profile,
             CONTEXT=rsp,
