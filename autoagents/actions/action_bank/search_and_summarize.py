@@ -39,7 +39,28 @@ A: MLOps competitors
 8. Dataiku
 """
 
+SEARCH_AND_SUMMARIZE_PRODUCTS_SYSTEM = """### Requirements
+1. Please summarize the products and prices based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
+- The context is likely to contain all the information. If it does, just refer to the context. If it is irrelevant to the user's search request history, please reduce its reference and usage.
+2. If there are citable links in the context, annotate them in the main text in the format [main text](citation link). If there are none in the context, do not write links.
+3. The reply should be graceful, clear, non-repetitive, smoothly written, and of moderate length, in {LANG}.
+
+### Dialogue History (For example)
+A: men's large blue button down shirt
+
+### Current Question (For example)
+A: men's large blue button down shirt
+
+### Current Reply (For example)
+1. 'Cubavera Four Pocket Guayabera Shirt' for $13.50
+2. 'Polo Ralph Lauren Plaid Short Sleeve Button-down Oxford Shirt' for $52.20 
+3. 'Brixton Bowery Flannel Shirt' for $27.48
+"""
+
+
+
 SEARCH_AND_SUMMARIZE_SYSTEM_EN_US = SEARCH_AND_SUMMARIZE_SYSTEM.format(LANG='en-us')
+SEARCH_AND_SUMMARIZE_PRODUCTS_SYSTEM_EN_US = SEARCH_AND_SUMMARIZE_PRODUCTS_SYSTEM.format(LANG='en-us')
 
 SEARCH_AND_SUMMARIZE_PROMPT = """
 ### Reference Information
@@ -194,11 +215,21 @@ class SearchProductsFromKlarna(Action):
                     raise e
                 time.sleep(1)
 
+        print("type(rsp) ",type(rsp))
         self.result = rsp
-        if not rsp:
+        if not rsp or 'response' not in rsp or 'products' not in rsp['response']:
             logger.error('empty rsp...')
             return ""
         # logger.info(rsp)
+        
+        formatted_rsp = ""
+
+        for items in rsp['response']['products']:
+
+
+
+        
+
 
         system_prompt = [system_text]
 
@@ -209,7 +240,9 @@ class SearchProductsFromKlarna(Action):
             QUERY_HISTORY='\n'.join([str(i) for i in context[:-1]]),
             QUERY=str(context[-1])
         )
+        
         result = await self._aask(prompt, system_prompt)
         logger.debug(prompt)
+        # print("self.result = ",self.result)
         logger.debug(result)
         return result
