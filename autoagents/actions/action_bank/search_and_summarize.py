@@ -206,7 +206,8 @@ class SearchProductsFromKlarna(Action):
         while True:
             try:
                 # rsp = await self.search_engine.run(query)
-                rsp = await self.klarna_chain(query)
+                # rsp = await self.klarna_chain(query)
+                rsp =  self.klarna_chain(query)
                 break
             except ValueError as e:
                 try_count += 1
