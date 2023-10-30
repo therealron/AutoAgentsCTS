@@ -227,8 +227,10 @@ class SearchProductsFromKlarna(Action):
 
         for item in rsp['response']['products']:
             formatted_rsp += f"'{item['name']}' is for {item['price']}\n"
-        logger.info("rsp = "+rsp )
-        logger.inf("formatter_rsp = "+rsp)
+        # logger.info("rsp = "+rsp )
+        # logger.inf("formatter_rsp = "+rsp)
+        print("rsp = ",rsp)
+        print("formatted_rsp = ",formatted_rsp)
         rsp = formatted_rsp
 
         system_prompt = [system_text]
