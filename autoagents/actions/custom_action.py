@@ -7,7 +7,11 @@ from typing import List, Tuple
 
 from autoagents.actions.action import Action
 from .action.action_output import ActionOutput
-from .action_bank.search_and_summarize import SearchAndSummarize, SEARCH_AND_SUMMARIZE_SYSTEM_EN_US
+from .action_bank.search_and_summarize import SearchAndSummarize,\
+ SEARCH_AND_SUMMARIZE_SYSTEM_EN_US, \
+ SearchProductsFromKlarna, \
+ SEARCH_AND_SUMMARIZE_PRODUCTS_SYSTEM_EN_US
+
 
 from autoagents.system.logs import logger
 from autoagents.system.utils.common import OutputParser
@@ -145,10 +149,17 @@ class CustomAction(Action):
             response = f"\n{rsp.instruct_content.ActionInput}\n"
         elif rsp.instruct_content.Action in self.tool:
             print("Debug: rsp.instruct_content.Action = ",rsp.instruct_content.Action," and self.tool = ",self.tool)
-            sas = SearchAndSummarize(serpapi_api_key=self.serpapi_api_key, llm=self.llm)
-            sas_rsp = await sas.run(context=[Message(rsp.instruct_content.ActionInput)], system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
-            # response = f"\n{sas_rsp}\n"
-            response = f">>> Search Results\n{sas.result}\n\n>>> Search Summary\n{sas_rsp}"
+            if rsp.instruct_content.Action == 'SearchAndSummarize':
+                sas = SearchAndSummarize(serpapi_api_key=self.serpapi_api_key, llm=self.llm)
+                sas_rsp = await sas.run(context=[Message(rsp.instruct_content.ActionInput)], system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+                # response = f"\n{sas_rsp}\n"
+                response = f">>> Search Results\n{sas.result}\n\n>>> Search Summary\n{sas_rsp}"
+            elif rsp.instruct_content.Action == 'SearchProductsFromKlarna':
+                sas = SearchProductsFromKlarna(serpapi_api_key=self.serpapi_api_key, llm=self.llm)
+                sas_rsp = await sas.run(context=[Message(rsp.instruct_content.ActionInput)], system_text=SEARCH_AND_SUMMARIZE_PRODUCTS_SYSTEM_EN_US)
+                # response = f"\n{sas_rsp}\n"
+                response = f">>> Search Results\n{sas.result}\n\n>>> Search Summary\n{sas_rsp}"
+
         else:
             response = f"\n{rsp.instruct_content.ActionInput}\n"
 
