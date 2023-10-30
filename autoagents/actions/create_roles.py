@@ -117,7 +117,8 @@ OUTPUT_MAPPING = {
 # for item in TOOLS_LIST:
 #     TOOLS += '(Tool:' + item['toolname'] + '. Description:' + item['description'] + '),'
 # TOOLS += ']'
-TOOLS = 'tool: SearchAndSummarize, description: useful for when you need to answer unknown questions'
+TOOLS = '(tool: SearchAndSummarize, description: useful for when you need to answer unknown questions),'
+TOOLS += '(tool: SearchProductsFromKlarna, description: useful for when you want to search for ecommerce products like clothes, electronics, toys or any other product )'
 
 
 class CreateRoles(Action):
